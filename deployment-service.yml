@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: tetris
-        image: shaikmustafa/shammu:devops
+        image: praveen22233/mygameap:1
         ports:
         - containerPort: 3000   # Use port 3000
 
