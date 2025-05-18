@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: tetris
-        image: praveen22233/mygameapp:82
+        image: praveen22233/mygameapp:83
         ports:
         - containerPort: 3000   # Use port 3000
 
