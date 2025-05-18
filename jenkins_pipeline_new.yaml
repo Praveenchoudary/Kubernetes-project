@@ -1,25 +1,30 @@
 pipeline {
     agent any
+
     tools {
         jdk 'jdk17'
         nodejs 'nodejs'
     }
+
     environment {
         SCANNER_HOME = tool 'mysonar'
         DOCKER_IMAGE = "praveen22233/mygameapp:${BUILD_NUMBER}"
         REGISTRY_CREDENTIALS = credentials('dockerhub')
     }
+
     stages {
         stage("Clean") {
             steps {
                 cleanWs()
             }
         }
+
         stage("Clone Code") {
             steps {
                 git "https://github.com/Praveenchoudary/Kubernetes-project.git"
             }
         }
+
         stage("SonarQube Analysis") {
             steps {
                 withSonarQubeEnv('mysonar') {
@@ -27,6 +32,7 @@ pipeline {
                 }
             }
         }
+
         stage("Quality Gates") {
             steps {
                 script {
@@ -34,11 +40,13 @@ pipeline {
                 }
             }
         }
+
         stage("Install Dependencies") {
             steps {
                 sh 'npm install'
             }
         }
+
         stage("Build and Push Docker Image") {
             steps {
                 script {
@@ -50,31 +58,36 @@ pipeline {
                 }
             }
         }
+
         stage("Trivy File System Scan") {
             steps {
                 echo "Scanning the file system for vulnerabilities..."
                 sh "trivy fs . > trivyfile.txt"
             }
         }
+
         stage("Trivy Image Scan") {
             steps {
                 echo "Scanning Docker image ${DOCKER_IMAGE} for vulnerabilities..."
                 sh "trivy image ${DOCKER_IMAGE}"
             }
         }
+
         stage("Update Deployment File in GitHub") {
             environment {
                 GIT_REPO_NAME = "Kubernetes-project"
                 GIT_USER_NAME = "Praveenchoudary"
             }
+
             steps {
                 withCredentials([string(credentialsId: 'github', variable: 'GITHUB_TOKEN')]) {
                     sh '''
                         git config user.email "praveenchoudarychinthala@gmail.com"
                         git config user.name "Praveenchoudary"
 
-                        sed -i "s/replaceImageTag/${BUILD_NUMBER}/g" deployment/deployment-svc.yml
-                        
+                        # Replace image tag dynamically
+                        sed -i "s|image: praveen22233/mygameapp:.*|image: praveen22233/mygameapp:${BUILD_NUMBER}|g" deployment/deployment-svc.yml
+
                         git add deployment/deployment-svc.yml
                         if git diff --cached --quiet; then
                             echo "No changes to commit."
